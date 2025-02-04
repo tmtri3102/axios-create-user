@@ -26,16 +26,41 @@ class App extends Component {
     }
 
     componentDidMount() {
-        this.setState({ loading: true });
-        this.getUsers()
-            .then(res => {
-                this.setState({ users: res.data });
-            })
+        // this.setState({ loading: true });
+        // this.getUsers()
+        //     .then(res => {
+        //         this.setState({ users: res.data });
+        //     })
+        //     .catch(err => {
+        //         throw err;
+        //     })
+        //     .finally(() => {
+        //         this.setState({ loading: false });
+        //     });
+        const getUsers = axios.get("http://localhost:3001/api/users");
+        const getArticle = axios.get("http://localhost:3001/api/articles");
+        // then handle all 2 get request and match res1 to getUsers, res2 to getArticle
+        axios
+            .all([getUsers, getArticle])
+            .then(
+                axios.spread((res1, res2) => {
+                    const users = res1.data.map(user => {
+                        console.log("res1.data", res1.data);
+                        console.log("user", user);
+                        return {
+                            ...user,
+                            article: res2.data.filter(item => {
+                                console.log("res2.data", res2.data);
+
+                                return item.user_id === user.id;
+                            })
+                        };
+                    }); // lay data cua response, wrap trong user object, them article property - aka another object but filter that match user id
+                    this.setState({ users: users });
+                })
+            )
             .catch(err => {
                 throw err;
-            })
-            .finally(() => {
-                this.setState({ loading: false });
             });
     }
 
@@ -64,16 +89,32 @@ class App extends Component {
     };
 
     render() {
-        const { loading, users } = this.state;
-        if (loading) return <p>loading...</p>;
+        const {users } = this.state;
+        // if (loading) return <p>loading...</p>;
         return (
             <div>
                 <h1>Users</h1>
-                <ul>
-                    {users.map(user => (
-                        <li key={user.id}> {user.name} </li>
-                    ))}
-                </ul>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Article numbers</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {users.map ( user => (
+                        <tr key={user.id}>
+                            <td> {user.name} </td>
+                            <td> {user.article.length} </td>
+                        </tr>
+                    ) )}
+                    </tbody>
+                </table>
+                {/*<ul>*/}
+                {/*    {users.map(user => (*/}
+                {/*        <li key={user.id}> {user.name} </li>*/}
+                {/*    ))}*/}
+                {/*</ul>*/}
             </div>
         );
     }
