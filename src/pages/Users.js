@@ -5,7 +5,8 @@ class Users extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            users: []
+            users: [],
+            loading: false
         };
     }
 
